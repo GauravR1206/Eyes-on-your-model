@@ -128,51 +128,34 @@ We use simple neural networks to demonstrate W&B features:
 - Multiple loss components (BCE + KL divergence)
 - More complex metric relationships
 
-## 📊 What You'll See in Your W&B Dashboard
-
-After running the training scripts, your W&B dashboard will automatically show:
-
-### 📈 **Interactive Loss Curves**
-- Real-time updates as your model trains
-- Smooth, professional-looking charts
-- Easy comparison between training and validation losses
-- Hover tooltips with exact values
-
-### 🎨 **Stunning Latent Space Visualizations**
-- Automatically generated scatter plots every 5 epochs
-- Color-coded by digit class (0-9) 
-- Watch the model learn to separate digits in real-time
-- High-resolution plots saved automatically
-
-### ⚙️ **Complete Experiment Tracking**
-- All hyperparameters logged automatically
-- Model architecture visualization
-- Training progress with timestamps
-- System metrics (GPU usage, memory, etc.)
-
-### 🔍 **Advanced Model Monitoring** 
-- Gradient histograms and distributions
-- Parameter tracking over time
-- Layer-wise statistics
-- All with **zero additional code** - W&B handles everything!
-
-## 🎯 Key Takeaways
-
-After completing this tutorial, you'll understand:
-
-1. **How effortless W&B integration is** - literally 3 lines of code transforms any ML project
-2. **The power of automatic visualization** - professional plots without matplotlib headaches  
-3. **Real-time experiment monitoring** - never lose track of training progress again
-4. **Zero-configuration logging** - hyperparameters, metrics, and plots all handled automatically
-5. **Why every ML practitioner should use W&B** - it's like having a personal ML assistant
-
 ## 💡 Next Steps
 
-Now that you've seen how easy W&B is, try integrating it into your own projects:
+Now that you've seen how easy W&B is, here are some exciting ways to extend your learning:
+
+### 🚀 **Apply to Your Own Projects**
 - Add `wandb.init()` to any existing training script
 - Log your metrics with `wandb.log()`
 - Upload plots with `wandb.Image()`
 - Share beautiful experiment results with your team!
+
+### 🔬 **Advanced W&B Experiments to Try**
+- **Can you log the input and images as well like you are logging the latent space?**
+  - Try logging original MNIST images alongside reconstructions
+  - Compare input vs. output side-by-side in W&B
+  
+- **What happens to the latent space as you change the KL weight?**
+  - Experiment with different β values in β-VAE
+  - Watch how latent space structure changes in real-time
+  
+- **How about a model comparison on with different KL weights?**
+  - Run multiple VAE experiments with varying KL weights
+  - Use W&B's comparison tools to analyze the differences
+  
+- **Do you want to train other models?**
+  - Try different architectures (CNNs, ResNets, Transformers)
+  - Experiment with other datasets (CIFAR-10, CelebA)
+  - All while maintaining the same beautiful W&B logging!
+
 
 ## 📝 License
 
