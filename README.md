@@ -16,47 +16,76 @@ A **hands-on tutorial** demonstrating the power and simplicity of **Weights & Bi
 - 💾 **Automatic Logging**: Save plots, checkpoints, and metadata without manual file management
 - 🚀 **Zero Configuration**: Get professional ML tracking running in minutes, not hours
 
-## 🚀 Quick Start
+## 🚀 Getting Started
 
-### Installation
+Follow these steps to set up Weights & Biases, connect to Delta AI, and start training.
 
-1. **Clone the repository**:
-   ```bash
-   git clone https://github.com/GauravR1206/AI_Summer_School.git
-   cd AI_Summer_School
-   ```
+### Step 1: Create a Weights & Biases Account
 
-2. **Install dependencies**:
-   ```bash
-   pip install torch torchvision matplotlib wandb datasets kagglehub
-   ```
+1. Go to [https://wandb.ai](https://wandb.ai).
+2. Click **Login** in the top-right corner of the page.
+3. Select **Sign in with Google** and sign in with your Google account.
+4. After signing in, you will see a screen asking you to select your role. Select **Academic**.
 
-3. **Set up Weights & Biases** (this is the important part! 🎯):
-   ```bash
-   wandb login
-   ```
-   
-   This will open your browser to get your W&B API key. Create a free account if you don't have one - it takes 30 seconds!
+![W&B account creation screen — select Academic](Wandb_create.png)
 
-### 🏃‍♂️ See W&B in Action!
+5. Once you select Academic, you will land on your W&B settings page. Click **Generate API Key**, then copy the API key and save it somewhere safe on your device.
 
-Once you're set up, these simple commands will show you the magic of W&B:
+![W&B settings page — generate and copy your API key](Wandb_final.png)
 
-#### Train Autoencoder (to see basic W&B logging)
+> **Warning:** Do not share your API key with anyone. Do not commit it to GitHub, post it publicly, or include it in any shared files. This key is for your eyes and your eyes only.
+
+### Step 2: Connect to Delta AI
+
+Open a terminal and SSH into the Delta cluster. Replace `NCSA_USERNAME` with your actual NCSA username:
+
+```bash
+ssh NCSA_USERNAME@login.delta.ncsa.illinois.edu
+```
+
+### Step 3: Clone the Repository and Install Dependencies
+
+Once you are logged into Delta, clone this repository using HTTPS and install the dependencies with `uv`:
+
+```bash
+git clone https://github.com/GauravR1206/AI_Summer_School.git
+cd AI_Summer_School
+uv sync
+```
+
+### Step 4: Log in to Weights & Biases
+
+Run the following command and paste your API key when prompted:
+
+```bash
+wandb login
+```
+
+### Step 5: Request a GPU
+
+Submit an interactive GPU job on Delta:
+
+```bash
+srun -A bfep-delta-gpu --partition=gpuA40x4-interactive \
+     --nodes=1 --gpus-per-node=1 --cpus-per-task=4 --mem=16g \
+     --time=00:20:00 --pty bash
+```
+
+Wait until you are assigned a GPU. Once you have a GPU, activate your virtual environment:
+
+```bash
+source .venv/bin/activate
+```
+
+### Step 6: Train the Autoencoder
+
+Now run the autoencoder training script:
+
 ```bash
 python train_AE.py --epochs 20 --latent_dim 2
 ```
 
-#### Train Variational Autoencoder (to see advanced loss tracking)
-```bash
-python train_VAE.py --epochs 20 --latent_dim 2
-```
-
-**🎉 That's it!** After running either command:
-- Your browser will automatically open to your W&B dashboard
-- You'll see real-time loss curves updating every epoch
-- Beautiful 2D latent space visualizations appear every 5 epochs
-- All hyperparameters, model architecture, and metrics are automatically logged
+Once training begins, you will see a link printed in the terminal that takes you to your W&B dashboard. Open that link to monitor your model's training in real time — you'll see live loss curves, latent space visualizations, and all logged metrics.
 
 #### 🎛️ Available Arguments
 ```
