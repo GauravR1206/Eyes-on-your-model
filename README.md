@@ -43,9 +43,23 @@ Open a terminal and SSH into the Delta cluster. Replace `NCSA_USERNAME` with you
 ssh NCSA_USERNAME@login.delta.ncsa.illinois.edu
 ```
 
-### Step 3: Clone the Repository and Install Dependencies
+### Step 3: Install uv
 
-Once you are logged into Delta, clone this repository using HTTPS and install the dependencies with `uv`:
+Before cloning the repository, install [uv](https://docs.astral.sh/uv/), a fast Python package manager:
+
+```bash
+curl -LsSf https://astral.sh/uv/install.sh | sh
+```
+
+After installation, restart your shell or run the following to make `uv` available in your current session:
+
+```bash
+source $HOME/.local/bin/env
+```
+
+### Step 4: Clone the Repository and Install Dependencies
+
+Clone this repository using HTTPS and install the dependencies with `uv`:
 
 ```bash
 git clone https://github.com/GauravR1206/AI_Summer_School.git
@@ -53,7 +67,7 @@ cd AI_Summer_School
 uv sync
 ```
 
-### Step 4: Log in to Weights & Biases
+### Step 5: Log in to Weights & Biases
 
 Run the following command and paste your API key when prompted:
 
@@ -61,7 +75,7 @@ Run the following command and paste your API key when prompted:
 wandb login
 ```
 
-### Step 5: Request a GPU
+### Step 6: Request a GPU
 
 Submit an interactive GPU job on Delta:
 
@@ -77,7 +91,7 @@ Wait until you are assigned a GPU. Once you have a GPU, activate your virtual en
 source .venv/bin/activate
 ```
 
-### Step 6: Train the Autoencoder
+### Step 7: Train the Autoencoder
 
 Now run the autoencoder training script:
 
