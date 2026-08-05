@@ -9,7 +9,9 @@
 
 ## 🚀 Getting Started
 
-Follow these steps to set up Weights & Biases, connect to Delta AI, and start training.
+Follow these steps to set up Weights & Biases, connect to Delta, and start training.
+
+> **Before you start:** you need a working NCSA Delta login (ACCESS ID, NCSA username/password, and Duo). If you have not done that yet, complete the Participant HOW-TO first — Steps 1–5 there, ending with a successful `nvidia-smi` on a GPU node.
 
 ### Step 1: Create a Weights & Biases Account
 
@@ -26,7 +28,7 @@ Follow these steps to set up Weights & Biases, connect to Delta AI, and start tr
 
 > **Warning:** Do not share your API key with anyone. Do not commit it to GitHub, post it publicly, or include it in any shared files. This key is for your eyes and your eyes only.
 
-### Step 2: Connect to Delta AI
+### Step 2: Connect to Delta
 
 Open a terminal and SSH into the Delta cluster. Replace `NCSA_USERNAME` with your actual NCSA username:
 
@@ -34,39 +36,71 @@ Open a terminal and SSH into the Delta cluster. Replace `NCSA_USERNAME` with you
 ssh NCSA_USERNAME@login.delta.ncsa.illinois.edu
 ```
 
+Type your NCSA password (nothing appears as you type — that is normal), then approve the Duo push on your phone.
+
 ### Step 3: Install uv
 
-Before cloning the repository, install [uv](https://docs.astral.sh/uv/), a fast Python package manager:
+Install [uv](https://docs.astral.sh/uv/), a fast Python package manager:
 
 ```bash
 curl -LsSf https://astral.sh/uv/install.sh | sh
 ```
 
-After installation, restart your shell or run the following to make `uv` available in your current session:
+Then make `uv` available in your current session and confirm it works:
 
 ```bash
-source $HOME/.local/bin/env
+export PATH="$HOME/.local/bin:$PATH"
+uv --version
 ```
 
-### Step 4: Clone the Repository and Install Dependencies
+You should see a version number such as `uv 0.9.x`. **Do not continue until this prints a version** — if it does not, see Troubleshooting below.
 
-Clone this repository using HTTPS and install the dependencies with `uv`:
+### Step 4: Set up your workspace
+
+Delta has two storage areas you care about today:
+
+| Area | Path | Use it for |
+| --- | --- | --- |
+| **HOME** | `/u/$USER` | Code and your Python environment. 100 GB and 750,000 files per user. |
+| **WORK** | `/work/hdd/<project>/$USER` | Datasets, checkpoints, logs — anything a job reads or writes. |
+
+Home is **not** meant for job I/O, so we keep the repository and the virtual environment in home and send all data and outputs to work. Set that up once:
 
 ```bash
-git clone https://github.com/GauravR1206/AI_Summer_School.git
-cd AI_Summer_School
-uv sync
+accounts                              # confirm your project code (e.g. bfep)
+export PROJ=/work/hdd/bfep/$USER      # edit if your project code differs
+mkdir -p $PROJ/data $PROJ/checkpoints $PROJ/wandb
+export WANDB_DIR=$PROJ/wandb
 ```
 
-### Step 5: Log in to Weights & Biases
+### Step 5: Clone the Repository and Install Dependencies
 
-Run the following command and paste your API key when prompted:
+Clone this repository using HTTPS (no GitHub account needed — it is public) and install the dependencies with `uv`:
 
 ```bash
-wandb login
+cd $HOME
+git clone https://github.com/GauravR1206/Eyes-on-your-model.git
+cd Eyes-on-your-model
+uv sync -p 3.12
 ```
 
-### Step 6: Request a GPU
+`-p 3.12` pins the Python version. PyTorch 2.8 does not publish wheels for Python 3.14, so without the pin `uv` may pick an interpreter that cannot install torch.
+
+> This downloads PyTorch and the CUDA libraries — roughly 4–6 GB and a few minutes on a good connection. It only happens once.
+
+### Step 6: Log in to Weights & Biases
+
+Run the following and paste your API key when prompted:
+
+```bash
+uv run wandb login
+```
+
+Use `uv run` here — `wandb` lives inside the project's virtual environment, so plain `wandb login` will report `command not found` until the environment is activated in Step 7.
+
+> **Your key will not appear as you paste it.** That is normal — paste and press Enter. The key is saved to `~/.netrc`, so you only do this once; it will still work after you move to a GPU node.
+
+### Step 7: Request a GPU
 
 Submit an interactive GPU job on Delta:
 
@@ -76,18 +110,19 @@ srun -A bfep-delta-gpu --partition=gpuA40x4-interactive \
      --time=00:20:00 --pty bash
 ```
 
-Wait until you are assigned a GPU. Once you have a GPU, activate your virtual environment:
+Wait until you are assigned a GPU — your prompt will change to something like `[NCSA_USERNAME@gpua045 ...]$`. Then activate your virtual environment:
 
 ```bash
 source .venv/bin/activate
 ```
 
-### Step 7: Train the Autoencoder
+### Step 8: Train the Autoencoder
 
-Now run the autoencoder training script:
+Run the autoencoder training script, writing data and checkpoints to your work directory:
 
 ```bash
-python train_AE.py --epochs 20 --latent_dim 2
+python train_AE.py --epochs 20 --latent_dim 2 \
+    --data_dir $PROJ/data --save_dir $PROJ/checkpoints
 ```
 
 Once training begins, you will see a link printed in the terminal that takes you to your W&B dashboard. Open that link to monitor your model's training in real time — you'll see live loss curves, latent space visualizations, and all logged metrics.
@@ -104,7 +139,20 @@ Once training begins, you will see a link printed in the terminal that takes you
 --save_dir      Directory to save checkpoints (default: ./checkpoints)
 --seed          Random seed for reproducibility (default: 42)
 ```
+
+## 🩺 Troubleshooting
+
+| Symptom | What it means / what to do |
+| --- | --- |
+| `source $HOME/.local/bin/env: No such file or directory` | The installer did not write that helper script. Use `export PATH="$HOME/.local/bin:$PATH"` instead — that is all the script does. |
+| `uv: command not found` after Step 3 | Same cause. Run the `export PATH` line, then `uv --version`. If still missing, re-run the `curl` installer and read its output for errors. |
+| `Username for 'https://github.com':` during `git clone` | The URL is wrong or the repository is private. Press Ctrl+C. Public repositories never ask for credentials — check the clone URL against Step 5. |
+| `torch ... doesn't have a source distribution or wheel for the current platform` | `uv` selected Python 3.14. Run `rm -rf .venv` and re-run `uv sync -p 3.12`. |
+| `wandb: command not found` | `wandb` is in the project environment. Use `uv run wandb login`, or activate first with `source .venv/bin/activate`. |
+| `No pyproject.toml found` from `uv sync` | You are not inside the repository directory. Run `cd $HOME/Eyes-on-your-model` first. |
+| `srun` sits at "queued and waiting" | The GPU queue is busy; it usually starts within a minute or two. Ctrl+C and retry if it stalls. |
+| `Invalid account` on `srun` | Check the account string is exactly `-A bfep-delta-gpu`. |
+
 ## 📝 License
 
 This project is licensed under the [MIT License](LICENSE) - see the LICENSE file for details.
-
