@@ -1,4 +1,4 @@
-# 🎓 Thriva AI - Demo setup
+# 🎓 Thrive AI - Demo setup
 
 [![Python](https://img.shields.io/badge/Python-3.11%2B-blue)](https://python.org)
 [![PyTorch](https://img.shields.io/badge/PyTorch-2.8.0%2B-red)](https://pytorch.org)
