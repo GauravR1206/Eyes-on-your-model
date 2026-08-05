@@ -8,6 +8,7 @@ from torch.utils.data import DataLoader
 from torchvision import datasets, transforms
 
 import matplotlib.pyplot as plt
+import matplotlib.gridspec as gridspec
 import wandb
 
 from models import AE  # uses your AE class
@@ -52,6 +53,43 @@ def plot_latent_space(model, loader, device, max_points=10000):
     cbar = plt.colorbar(scatter, ticks=range(10))
     cbar.set_label("Digit label")
     plt.tight_layout()
+    return fig
+
+
+@torch.no_grad()
+def plot_reconstruction_grid(model, loader, device, n_rows=5):
+    """Return a 5x4 grid figure: [orig, recon, gap, orig, recon] per row."""
+    model.eval()
+    # Grab the first batch and take 2 * n_rows samples (2 pairs per row)
+    x, _ = next(iter(loader))
+    x = x[:n_rows * 2].to(device)
+    x_flat = x.view(x.size(0), -1)
+    recon, _ = model(x_flat)
+    recon = recon.view_as(x_flat)
+
+    x_np = x.cpu().view(-1, 28, 28).numpy()
+    r_np = recon.cpu().view(-1, 28, 28).numpy()
+
+    fig = plt.figure(figsize=(7, 9), dpi=120)
+    gs = gridspec.GridSpec(n_rows, 5, width_ratios=[1, 1, 0.3, 1, 1],
+                           wspace=0.05, hspace=0.3)
+
+    for row in range(n_rows):
+        # Left pair: sample at index row*2
+        idx_l = row * 2
+        # Right pair: sample at index row*2 + 1
+        idx_r = row * 2 + 1
+
+        for col, img in [(0, x_np[idx_l]), (1, r_np[idx_l]),
+                         (3, x_np[idx_r]), (4, r_np[idx_r])]:
+            ax = fig.add_subplot(gs[row, col])
+            ax.imshow(img, cmap="gray", vmin=0, vmax=1)
+            ax.axis("off")
+            if row == 0:
+                ax.set_title("Orig" if col in (0, 3) else "Recon", fontsize=9)
+
+    fig.suptitle("AE Reconstructions", fontsize=12, y=0.98)
+    fig.tight_layout(rect=[0, 0, 1, 0.96])
     return fig
 
 
@@ -142,6 +180,12 @@ def main():
             "loss/val_recon": val_loss,
             "lr": optimizer.param_groups[0]["lr"],
         })
+
+        # Every 10 epochs: log reconstruction grid
+        if epoch % 10 == 0:
+            recon_fig = plot_reconstruction_grid(model, val_loader, device)
+            wandb.log({"plots/reconstructions": wandb.Image(recon_fig), "epoch": epoch})
+            plt.close(recon_fig)
 
         # Every 5 epochs: visualize latent space (requires latent_dim=2)
         if epoch % 5 == 0 and args.latent_dim == 2:
