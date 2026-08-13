@@ -23,7 +23,7 @@ A **hands-on tutorial** demonstrating the power and simplicity of **Weights & Bi
 1. **Clone the repository**:
    ```bash
    git clone https://github.com/GauravR1206/Eyes-on-your-model
-   cd AI_Summer_School
+   cd Eyes-on-your-model
    ```
 
 2. **Install dependencies**:
